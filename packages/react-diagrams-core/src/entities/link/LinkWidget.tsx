@@ -89,6 +89,23 @@ export class LinkWidget extends React.Component<LinkProps, LinkState> {
 		}
 	}
 
+	shouldComponentUpdate(
+		nextProps: Readonly<LinkProps>,
+		nextState: Readonly<LinkState>,
+		nextContext: any
+	): boolean {
+		if (!this.props.link.performanceTune()) {
+			return true;
+		}
+		// deserialization event
+		if (this.props.link !== nextProps.link) {
+			return true;
+		}
+
+		// change event
+		return !_.isEqual(this.props.link.serialize(), nextProps.link.serialize());
+	}
+
 	render() {
 		const { link } = this.props;
 
@@ -102,25 +119,19 @@ export class LinkWidget extends React.Component<LinkProps, LinkState> {
 
 		//generate links
 		return (
-			<PeformanceWidget model={this.props.link} serialized={this.props.link.serialize()}>
-				{() => {
+			<g data-linkid={this.props.link.getID()}>
+				{this.props.diagramEngine.generateWidgetForLink(link)}
+				{_.map(this.props.link.getLabels(), (labelModel, index) => {
 					return (
-						<g data-linkid={this.props.link.getID()}>
-							{this.props.diagramEngine.generateWidgetForLink(link)}
-							{_.map(this.props.link.getLabels(), (labelModel, index) => {
-								return (
-									<LabelWidget
-										key={labelModel.getID()}
-										engine={this.props.diagramEngine}
-										label={labelModel}
-										index={index}
-									/>
-								);
-							})}
-						</g>
+						<LabelWidget
+							key={labelModel.getID()}
+							engine={this.props.diagramEngine}
+							label={labelModel}
+							index={index}
+						/>
 					);
-				}}
-			</PeformanceWidget>
+				})}
+			</g>
 		);
 	}
 }

@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as _ from 'lodash';
 import { DiagramEngine } from '../../DiagramEngine';
 import { NodeModel } from './NodeModel';
-import { BaseEntityEvent, BaseModel, ListenerHandle, PeformanceWidget } from '@projectstorm/react-canvas-core';
+import { BaseEntityEvent, BaseModel, ListenerHandle } from '@projectstorm/react-canvas-core';
 import styled from '@emotion/styled';
 import ResizeObserver from 'resize-observer-polyfill';
 
@@ -71,24 +71,35 @@ export class NodeWidget extends React.Component<NodeProps> {
 		this.installSelectionListener();
 	}
 
+	shouldComponentUpdate(
+		nextProps: Readonly<NodeProps>,
+		nextState: Readonly<any>,
+		nextContext: any
+	): boolean {
+		if (!this.props.node.performanceTune()) {
+			return true;
+		}
+		// deserialization event
+		if (this.props.node !== nextProps.node) {
+			return true;
+		}
+
+		// change event
+		return !_.isEqual(this.props.node.serialize(), nextProps.node.serialize());
+	}
+
 	render() {
 		return (
-			<PeformanceWidget model={this.props.node} serialized={this.props.node.serialize()}>
-				{() => {
-					return (
-						<S.Node
-							className="node"
-							ref={this.ref}
-							data-nodeid={this.props.node.getID()}
-							style={{
-								top: this.props.node.getY(),
-								left: this.props.node.getX()
-							}}>
-							{this.props.diagramEngine.generateWidgetForNode(this.props.node)}
-						</S.Node>
-					);
-				}}
-			</PeformanceWidget>
+			<S.Node
+				className="node"
+				ref={this.ref}
+				data-nodeid={this.props.node.getID()}
+				style={{
+					top: this.props.node.getY(),
+					left: this.props.node.getX()
+				}}>
+				{this.props.diagramEngine.generateWidgetForNode(this.props.node)}
+			</S.Node>
 		);
 	}
 }
